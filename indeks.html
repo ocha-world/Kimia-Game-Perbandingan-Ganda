@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hukum Perbandingan Berganda Dalton - Game Balapan Kimia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+        .hover-scale:hover {
+            transform: scale(1.05);
+            transition: transform 0.2s ease;
+        }
+        .atom {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: grab;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            user-select: none;
+            position: relative;
+        }
+        .atom:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+        .atom.dragging {
+            opacity: 0.7;
+            z-index: 1000;
+        }
+        .carbon-atom {
+            background: linear-gradient(135deg, #4a4a4a, #2a2a2a);
+            color: white;
+            border: 3px solid #666;
+        }
+        .oxygen-atom {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: 3px solid #991b1b;
+        }
+        .drop-zone {
+            min-height: 120px;
+            border: 3px dashed #cbd5e1;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .drop-zone.drag-over {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+        .molecule {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .molecule .atom {
+            position: relative;
+        }
+        .bond {
+            width: 20px;
+            height: 4px;
+            background: #94a3b8;
+            border-radius: 2px;
+        }
+        .double-bond {
+            position: relative;
+        }
+        .double-bond::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 0;
+            width: 20px;
+            height: 4px;
+            background: #94a3b8;
+            border-radius: 2px;
+        }
+        .molecule-3d {
+            transform-style: preserve-3d;
+            animation: rotate3d 8s linear infinite;
+        }
+        @keyframes rotate3d {
+            0% { transform: rotateY(0deg) rotateX(10deg); }
+            100% { transform: rotateY(360deg) rotateX(10deg); }
+        }
+        .calculation-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(16, 185, 129, 0.1));
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+        }
+        .highlight-result {
+            animation: highlightPulse 2s ease-in-out;
+        }
+        @keyframes highlightPulse {
+            0%, 100% { background: rgba(16, 185, 129, 0.1); }
+            50% { background: rgba(16, 185, 129, 0.3); }
+        }
+        .option-btn {
+            transition: all 0.3s ease;
+        }
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .correct {
+            background: linear-gradient(135deg, #10b981, #059669) !important;
+        }
+        .incorrect {
+            background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Page 1: Introduction -->
+    <div id="page1" class="min-h-screen bg-blue-900 p-8 text-white fade-in">
+        <div class="max-w-4xl mx-auto bg-white bg-opacity-10 rounded-3xl p-8">
+            <div class="text-center mb-8">
+                <div class="mx-auto mb-4 text-yellow-400 text-6xl">📚</div>
+                <h1 class="text-4xl font-bold mb-4">Hukum Perbandingan Berganda Dalton</h1>
+            </div>
+
+            <div class="bg-white bg-opacity-20 rounded-2xl p-8">
+                <h2 class="text-2xl font-bold mb-6">Konsep Teoritis</h2>
+                
+                <p class="text-lg mb-6">
+                    <strong>Hukum Perbandingan Berganda Dalton</strong> menjelaskan bahwa jika dua unsur membentuk lebih dari satu senyawa, 
+                    perbandingan massa salah satu unsur dalam senyawa-senyawa tersebut merupakan bilangan bulat sederhana.
+                </p>
+
+                <div class="bg-blue-800 rounded-xl p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4 text-yellow-300">Prinsip Utama:</h3>
+                    <ul class="space-y-3">
+                        <li>• Ketika dua unsur bergabung membentuk senyawa berbeda, massa unsur pertama yang bergabung dengan massa tetap unsur kedua memiliki perbandingan bilangan bulat sederhana</li>
+                        <li>• Hukum ini mendukung teori atom dan menjelaskan komposisi kimia</li>
+                        <li>• Menunjukkan bahwa materi terdiri dari atom-atom yang tidak dapat dibagi</li>
+                    </ul>
+                </div>
+
+                <div class="bg-purple-800 rounded-xl p-6">
+                    <h3 class="text-xl font-bold mb-4 text-yellow-300">Contoh Klasik:</h3>
+                    <p class="mb-3">Karbon dan Oksigen membentuk CO dan CO₂:</p>
+                    <ul class="space-y-2">
+                        <li>• Dalam CO: 12g Karbon + 16g Oksigen</li>
+                        <li>• Dalam CO₂: 12g Karbon + 32g Oksigen</li>
+                        <li>• Perbandingan massa oksigen: 16:32 = 1:2 (bilangan bulat sederhana)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="text-center mt-8">
+                <button onclick="showPage(2)" class="bg-green-500 hover:bg-green-600 px-8 py-4 rounded-full text-white font-bold hover-scale">
+                    Lanjut ke Contoh Nyata →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 2: Real Examples -->
+    <div id="page2" class="min-h-screen bg-green-900 p-8 text-white fade-in hidden">
+        <div class="max-w-4xl mx-auto bg-white bg-opacity-10 rounded-3xl p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold mb-4">Perbandingan Berganda dalam Kehidupan Sehari-hari</h1>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <!-- Vehicle Emissions -->
+                <div class="bg-white bg-opacity-20 rounded-2xl p-6 text-center">
+                    <div class="text-6xl mb-4">🚗💨</div>
+                    <h3 class="text-xl font-bold mb-4">Emisi Kendaraan Bermotor</h3>
+                    <ul class="text-left space-y-2">
+                        <li>• <strong class="text-red-300">CO:</strong> Pembakaran tidak sempurna (beracun)</li>
+                        <li>• <strong class="text-blue-300">CO₂:</strong> Pembakaran sempurna (gas rumah kaca)</li>
+                        <li>• Unsur sama (C & O) dengan perbandingan berbeda</li>
+                        <li>• Penting untuk kontrol polusi udara</li>
+                    </ul>
+                </div>
+
+                <!-- Industrial -->
+                <div class="bg-white bg-opacity-20 rounded-2xl p-6 text-center">
+                    <div class="text-6xl mb-4">🏭⚗️</div>
+                    <h3 class="text-xl font-bold mb-4">Proses Industri</h3>
+                    <ul class="text-left space-y-2">
+                        <li>• <strong class="text-orange-300">Oksida Besi:</strong> FeO, Fe₂O₃, Fe₃O₄</li>
+                        <li>• <strong class="text-purple-300">Oksida Belerang:</strong> SO₂, SO₃</li>
+                        <li>• Sifat berbeda untuk kegunaan berbeda</li>
+                        <li>• Kontrol kualitas dalam manufaktur</li>
+                    </ul>
+                </div>
+
+                <!-- Environment -->
+                <div class="bg-white bg-opacity-20 rounded-2xl p-6 text-center">
+                    <div class="text-6xl mb-4">🌍📊</div>
+                    <h3 class="text-xl font-bold mb-4">Monitoring Lingkungan</h3>
+                    <ul class="text-left space-y-2">
+                        <li>• Pengukuran berbagai oksida nitrogen</li>
+                        <li>• Pengolahan air dengan senyawa klorin</li>
+                        <li>• Memahami pembentukan polutan</li>
+                        <li>• Prediksi dampak lingkungan</li>
+                    </ul>
+                </div>
+
+                <!-- Medical -->
+                <div class="bg-white bg-opacity-20 rounded-2xl p-6 text-center">
+                    <div class="text-6xl mb-4">🏥💊</div>
+                    <h3 class="text-xl font-bold mb-4">Kimia Medis</h3>
+                    <ul class="text-left space-y-2">
+                        <li>• Formulasi obat dengan perbandingan berbeda</li>
+                        <li>• Anestesi N₂O dengan sifat khusus</li>
+                        <li>• Perhitungan dosis yang tepat</li>
+                        <li>• Pemahaman interaksi obat</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button onclick="showPage(3)" class="bg-purple-500 hover:bg-purple-600 px-8 py-4 rounded-full text-white font-bold hover-scale">
+                    Lanjut ke Simulasi Atom →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 3: Atom Simulation -->
+    <div id="page3" class="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-pink-900 p-8 text-white fade-in hidden">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-8">
+                <div class="mx-auto mb-4 text-yellow-400 text-6xl">⚛️</div>
+                <h1 class="text-4xl font-bold mb-4">Simulasi Pembentukan Molekul</h1>
+                <p class="text-lg text-gray-300">Drag dan drop atom untuk membentuk CO dan CO₂, lalu lihat perbandingan massanya!</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-6">
+                <!-- Atom Inventory -->
+                <div class="bg-white bg-opacity-10 rounded-2xl p-6">
+                    <h3 class="text-xl font-bold mb-4 text-center">🧪 Inventori Atom</h3>
+                    
+                    <div class="mb-6">
+                        <h4 class="font-bold mb-3">Karbon (C) - Massa: 12 u</h4>
+                        <div class="grid grid-cols-3 gap-3" id="carbonAtoms">
+                            <!-- Carbon atoms will be generated here -->
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-bold mb-3">Oksigen (O) - Massa: 16 u</h4>
+                        <div class="grid grid-cols-3 gap-3" id="oxygenAtoms">
+                            <!-- Oxygen atoms will be generated here -->
+                        </div>
+                    </div>
+
+                    <div class="mt-6 p-4 bg-blue-800 bg-opacity-50 rounded-xl">
+                        <h4 class="font-bold mb-2">🎯 Instruksi:</h4>
+                        <ul class="text-sm space-y-1">
+                            <li>• Drag atom ke area pembentukan</li>
+                            <li>• Bentuk molekul CO dan CO₂</li>
+                            <li>• Lihat perhitungan massa otomatis</li>
+                            <li>• Amati perbandingan yang terbentuk</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Molecule Formation Area -->
+                <div class="bg-white bg-opacity-10 rounded-2xl p-6">
+                    <h3 class="text-xl font-bold mb-4 text-center">🔬 Area Pembentukan</h3>
+                    
+                    <!-- CO Formation -->
+                    <div class="mb-6">
+                        <h4 class="font-bold mb-3 text-center">Karbon Monoksida (CO)</h4>
+                        <div id="coDropZone" class="drop-zone" data-molecule="CO">
+                            <div id="coMolecule" class="molecule hidden">
+                                <!-- CO molecule will be built here -->
+                            </div>
+                            <div id="coPlaceholder" class="text-gray-400 text-center">
+                                <div class="text-4xl mb-2">⬇️</div>
+                                <p>Drag 1 Carbon + 1 Oksigen</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CO2 Formation -->
+                    <div>
+                        <h4 class="font-bold mb-3 text-center">Karbon Dioksida (CO₂)</h4>
+                        <div id="co2DropZone" class="drop-zone" data-molecule="CO2">
+                            <div id="co2Molecule" class="molecule hidden">
+                                <!-- CO2 molecule will be built here -->
+                            </div>
+                            <div id="co2Placeholder" class="text-gray-400 text-center">
+                                <div class="text-4xl mb-2">⬇️</div>
+                                <p>Drag 1 Carbon + 2 Oksigen</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <button onclick="resetSimulation()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-full text-sm hover-scale">
+                            🔄 Reset Simulasi
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Calculations & Results -->
+                <div class="bg-white bg-opacity-10 rounded-2xl p-6">
+                    <h3 class="text-xl font-bold mb-4 text-center">📊 Analisis & Perhitungan</h3>
+                    
+                    <!-- 3D Visualization -->
+                    <div class="mb-6 text-center">
+                        <h4 class="font-bold mb-3">Visualisasi 3D</h4>
+                        <div id="visualization3D" class="h-32 flex items-center justify-center text-gray-400">
+                            <p>Bentuk molekul untuk melihat visualisasi 3D</p>
+                        </div>
+                    </div>
+
+                    <!-- Mass Calculations -->
+                    <div class="calculation-box">
+                        <h4 class="font-bold mb-3">⚖️ Perhitungan Massa</h4>
+                        <div id="massCalculations" class="space-y-2 text-sm">
+                            <div id="coMassCalc" class="hidden">
+                                <p><strong>CO:</strong> 12u (C) + 16u (O) = <span class="text-green-400">28u</span></p>
+                            </div>
+                            <div id="co2MassCalc" class="hidden">
+                                <p><strong>CO₂:</strong> 12u (C) + 32u (2×O) = <span class="text-green-400">44u</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ratio Analysis -->
+                    <div class="calculation-box" id="ratioAnalysis">
+                        <h4 class="font-bold mb-3">📈 Analisis Perbandingan</h4>
+                        <div id="ratioResults" class="text-sm space-y-2">
+                            <p class="text-gray-400">Bentuk kedua molekul untuk melihat perbandingan</p>
+                        </div>
+                    </div>
+
+                    <!-- Dalton's Law Verification -->
+                    <div id="daltonVerification" class="calculation-box hidden">
+                        <h4 class="font-bold mb-3 text-green-400">✅ Verifikasi Hukum Dalton</h4>
+                        <div class="text-sm space-y-2">
+                            <p>Massa C tetap: 12u dalam kedua senyawa</p>
+                            <p>Massa O: 16u (CO) : 32u (CO₂)</p>
+                            <p class="text-yellow-400 font-bold">Perbandingan = 16:32 = 1:2 ✓</p>
+                            <p class="text-green-400">Hukum Perbandingan Berganda terbukti!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-8">
+                <button onclick="showPage(4)" class="bg-blue-500 hover:bg-blue-600 px-8 py-4 rounded-full text-white font-bold hover-scale">
+                    Lanjut ke Setup Pemain →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 4: Player Setup -->
+    <div id="page4" class="min-h-screen bg-purple-900 p-8 text-white fade-in hidden">
+        <div class="max-w-2xl mx-auto bg-white bg-opacity-10 rounded-3xl p-8">
+            <div class="text-center mb-8">
+                <div class="mx-auto mb-4 text-yellow-400 text-6xl">👥</div>
+                <h1 class="text-4xl font-bold mb-4">Informasi Pemain</h1>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-white bg-opacity-20 rounded-2xl p-6">
+                    <label class="block text-lg font-bold mb-3">Nama Lengkap:</label>
+                    <input
+                        type="text"
+                        id="playerName"
+                        placeholder="Masukkan nama Anda..."
+                        class="w-full p-4 rounded-xl bg-white bg-opacity-20 text-white placeholder-gray-300"
+                    />
+                </div>
+
+                <div class="bg-white bg-opacity-20 rounded-2xl p-6">
+                    <label class="block text-lg font-bold mb-3">Kelas:</label>
+                    <select
+                        id="playerClass"
+                        class="w-full p-4 rounded-xl bg-white bg-opacity-20 text-white"
+                        style="background-color: rgba(255,255,255,0.2);"
+                    >
+                        <option value="" style="background-color: #374151;">Pilih kelas...</option>
+                        <option value="Kelas 10" style="background-color: #374151;">Kelas 10</option>
+                        <option value="Kelas 11" style="background-color: #374151;">Kelas 11</option>
+                        <option value="Kelas 12" style="background-color: #374151;">Kelas 12</option>
+                        <option value="Mahasiswa" style="background-color: #374151;">Mahasiswa</option>
+                        <option value="Guru" style="background-color: #374151;">Guru</option>
+                    </select>
+                </div>
+
+                <div class="bg-white bg-opacity-20 rounded-2xl p-6">
+                    <h3 class="text-xl font-bold mb-4">Aturan Permainan:</h3>
+                    <ul class="space-y-2">
+                        <li>• Jawab 15 pertanyaan kimia dengan benar untuk menang</li>
+                        <li>• Jawaban salah = mengulang pertanyaan</li>
+                        <li>• Lomba dengan komputer sampai 100%</li>
+                        <li>• Batas waktu: 150 detik</li>
+                        <li>• Skor = 100 - (waktu terpakai)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="text-center mt-8">
+                <button
+                    id="startBtn"
+                    onclick="startGame()"
+                    disabled
+                    class="px-8 py-4 rounded-full font-bold bg-gray-600 text-gray-300"
+                >
+                    ▶️ Mulai Balapan Kimia!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 5: Game -->
+    <div id="page5" class="min-h-screen bg-teal-900 p-8 text-white fade-in hidden">
+        <!-- Header -->
+        <div class="bg-white bg-opacity-10 rounded-2xl p-4 mb-4 flex justify-between items-center">
+            <div class="flex items-center">
+                <span class="mr-2 text-yellow-400 text-2xl">⏰</span>
+                <span id="timer" class="text-2xl font-bold">2:30</span>
+            </div>
+            <div>Soal <span id="questionNum">1</span>/15</div>
+            <div>Pemain: <strong id="playerDisplay"></strong></div>
+        </div>
+
+        <!-- Race Track -->
+        <div class="bg-white bg-opacity-10 rounded-2xl p-6 mb-4">
+            <h3 class="text-xl font-bold mb-4">Progress Balapan</h3>
+            
+            <!-- Player -->
+            <div class="mb-4">
+                <div class="flex justify-between mb-2">
+                    <span>👨‍🔬 <span id="playerRaceName"></span></span>
+                    <span id="playerProgress">0%</span>
+                </div>
+                <div class="w-full bg-gray-600 rounded-full h-6">
+                    <div id="playerBar" class="bg-blue-500 h-6 rounded-full progress-bar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Bot -->
+            <div>
+                <div class="flex justify-between mb-2">
+                    <span>🤖 Komputer</span>
+                    <span id="botProgress">0%</span>
+                </div>
+                <div class="w-full bg-gray-600 rounded-full h-6">
+                    <div id="botBar" class="bg-red-500 h-6 rounded-full progress-bar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question -->
+        <div class="bg-white bg-opacity-10 rounded-2xl p-6">
+            <h2 id="questionText" class="text-2xl font-bold mb-6"></h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="answersContainer">
+                <!-- Options will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 6: Results -->
+    <div id="page6" class="min-h-screen bg-indigo-900 p-8 text-white fade-in hidden">
+        <div class="max-w-4xl mx-auto bg-white bg-opacity-10 rounded-3xl p-8">
+            <div class="text-center mb-6">
+                <div id="resultIcon" class="mx-auto mb-4 text-6xl">🏆</div>
+                <h1 id="resultTitle" class="text-4xl font-bold mb-4"></h1>
+            </div>
+
+            <!-- Results -->
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-white bg-opacity-20 rounded-2xl p-6">
+                    <h3 class="font-bold text-lg mb-4">Hasil Akhir</h3>
+                    <div class="space-y-2">
+                        <p>Nama: <strong id="finalName"></strong></p>
+                        <p>Kelas: <strong id="finalClass"></strong></p>
+                        <p>Progress Anda: <strong id="finalPlayerProgress"></strong></p>
+                        <p>Progress Komputer: <strong id="finalBotProgress"></strong></p>
+                        <p>Waktu Terpakai: <strong id="timeUsed"></strong></p>
+                        <p class="text-2xl font-bold text-yellow-400">Skor: <span id="finalScore"></span></p>
+                    </div>
+                </div>
+
+                <div class="bg-white bg-opacity-20 rounded-2xl p-6">
+                    <h3 class="font-bold text-lg mb-4">Kunci Jawaban</h3>
+                    <div class="space-y-2 text-sm" id="answerKey">
+                        <!-- Answer key will be generated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reflection -->
+            <div class="bg-white bg-opacity-20 rounded-2xl p-6 mb-6">
+                <h3 class="font-bold text-lg mb-4">Refleksi & Saran</h3>
+                <div class="space-y-4">
+                    <textarea
+                        id="experienceFeedback"
+                        placeholder="Bagaimana pengalaman belajar Anda dengan permainan ini?"
+                        class="w-full p-3 rounded-lg bg-white bg-opacity-20 text-white placeholder-gray-300"
+                        rows="3"
+                    ></textarea>
+                    <textarea
+                        id="suggestionFeedback"
+                        placeholder="Saran untuk perbaikan permainan..."
+                        class="w-full p-3 rounded-lg bg-white bg-opacity-20 text-white placeholder-gray-300"
+                        rows="3"
+                    ></textarea>
+                    <div class="text-center">
+                        <button onclick="submitFeedback()" class="bg-green-500 hover:bg-green-600 px-6 py-3 rounded-full hover-scale">
+                            Kirim Feedback
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gratitude -->
+            <div class="text-center bg-white bg-opacity-20 rounded-2xl p-6">
+                <h3 class="text-2xl font-bold mb-4">🙏 Terima Kasih!</h3>
+                <p class="mb-4">Semoga permainan ini membantu pemahaman Anda tentang Hukum Perbandingan Berganda Dalton</p>
+                <button
+                    onclick="resetGame()"
+                    class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-full hover-scale"
+                >
+                    Main Lagi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state variables
+        let currentPage = 1;
+        let playerName = '';
+        let playerClass = '';
+        let currentQuestion = 0;
+        let playerPosition = 0;
+        let botPosition = 0;
+        let timeLeft = 150;
+        let gameTimer = null;
+        let score = 0;
+        let startTime = null;
+        let playerAnswers = [];
+
+        // Simulation state
+        let draggedAtom = null;
+        let molecules = {
+            CO: { carbon: 0, oxygen: 0, complete: false },
+            CO2: { carbon: 0, oxygen: 0, complete: false }
+        };
+
+        // Questions data
+        const questions = [
+            {
+                q: "Jika karbon dan oksigen membentuk CO dan CO₂, berapa perbandingan massa oksigen?",
+                options: ["1:1", "1:2", "2:1", "1:4"],
+                answer: 1
+            },
+            {
+                q: "Pasangan senyawa yang menunjukkan hukum perbandingan berganda adalah?",
+                options: ["NaCl dan KCl", "H₂O dan H₂O₂", "CH₄ dan C₂H₆", "HCl dan HBr"],
+                answer: 1
+            },
+            {
+                q: "Dalam CO, massa karbon 12g dan oksigen 16g. Dalam CO₂, massa karbon 12g dan oksigen berapa gram?",
+                options: ["16g", "24g", "32g", "48g"],
+                answer: 2
+            },
+            {
+                q: "Hukum perbandingan berganda dikemukakan oleh?",
+                options: ["Lavoisier", "Dalton", "Proust", "Gay-Lussac"],
+                answer: 1
+            },
+            {
+                q: "Jika nitrogen dan oksigen membentuk NO dan NO₂, perbandingan massa oksigen adalah?",
+                options: ["1:1", "1:2", "2:1", "1:3"],
+                answer: 1
+            },
+            {
+                q: "Massa molekul relatif CO adalah?",
+                options: ["28", "44", "16", "32"],
+                answer: 0
+            },
+            {
+                q: "Massa molekul relatif CO₂ adalah?",
+                options: ["28", "44", "16", "32"],
+                answer: 1
+            },
+            {
+                q: "Dalam senyawa H₂O dan H₂O₂, perbandingan massa oksigen adalah?",
+                options: ["1:1", "1:2", "2:1", "1:4"],
+                answer: 1
+            },
+            {
+                q: "Rumus kimia karbon monoksida adalah?",
+                options: ["CO₂", "CO", "C₂O", "CO₃"],
+                answer: 1
+            },
+            {
+                q: "Rumus kimia karbon dioksida adalah?",
+                options: ["CO", "CO₂", "C₂O₂", "CO₃"],
+                answer: 1
+            },
+            {
+                q: "Atom karbon memiliki massa atom relatif?",
+                options: ["12", "16", "14", "18"],
+                answer: 0
+            },
+            {
+                q: "Atom oksigen memiliki massa atom relatif?",
+                options: ["12", "16", "14", "18"],
+                answer: 1
+            },
+            {
+                q: "Hukum perbandingan berganda berlaku untuk senyawa yang dibentuk oleh?",
+                options: ["Unsur yang sama", "Unsur yang berbeda", "Ion yang sama", "Molekul yang sama"],
+                answer: 0
+            },
+            {
+                q: "CO dan CO₂ merupakan contoh dari?",
+                options: ["Isomer", "Polimer", "Perbandingan berganda", "Campuran"],
+                answer: 2
+            },
+            {
+                q: "Teori atom Dalton didukung oleh hukum?",
+                options: ["Kekekalan massa", "Perbandingan tetap", "Perbandingan berganda", "Semua benar"],
+                answer: 3
+            }
+        ];
+
+        // Initialize simulation
+        function initializeSimulation() {
+            createAtoms();
+            setupDragAndDrop();
+        }
+
+        function createAtoms() {
+            const carbonContainer = document.getElementById('carbonAtoms');
+            const oxygenContainer = document.getElementById('oxygenAtoms');
+            
+            // Create carbon atoms
+            for(let i = 0; i < 6; i++) {
+                const atom = document.createElement('div');
+                atom.className = 'atom carbon-atom';
+                atom.textContent = 'C';
+                atom.draggable = true;
+                atom.dataset.type = 'carbon';
+                atom.dataset.id = `carbon-${i}`;
+                carbonContainer.appendChild(atom);
+            }
+            
+            // Create oxygen atoms
+            for(let i = 0; i < 9; i++) {
+                const atom = document.createElement('div');
+                atom.className = 'atom oxygen-atom';
+                atom.textContent = 'O';
+                atom.draggable = true;
+                atom.dataset.type = 'oxygen';
+                atom.dataset.id = `oxygen-${i}`;
+                oxygenContainer.appendChild(atom);
+            }
+        }
+
+        function setupDragAndDrop() {
+            // Add drag event listeners to atoms
+            document.querySelectorAll('.atom').forEach(atom => {
+                atom.addEventListener('dragstart', handleDragStart);
+                atom.addEventListener('dragend', handleDragEnd);
+            });
+
+            // Add drop event listeners to drop zones
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.addEventListener('dragover', handleDragOver);
+                zone.addEventListener('dragenter', handleDragEnter);
+                zone.addEventListener('dragleave', handleDragLeave);
+                zone.addEventListener('drop', handleDrop);
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedAtom = e.target;
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedAtom = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            e.target.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.target.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('drag-over');
+            
+            if (!draggedAtom) return;
+            
+            const moleculeType = e.target.dataset.molecule;
+            const atomType = draggedAtom.dataset.type;
+            
+            if (addAtomToMolecule(moleculeType, atomType)) {
+                draggedAtom.style.display = 'none';
+                updateMoleculeDisplay(moleculeType);
+                updateCalculations();
+            }
+        }
+
+        function addAtomToMolecule(moleculeType, atomType) {
+            const molecule = molecules[moleculeType];
+            
+            if (moleculeType === 'CO') {
+                if (atomType === 'carbon' && molecule.carbon === 0) {
+                    molecule.carbon = 1;
+                    return true;
+                } else if (atomType === 'oxygen' && molecule.oxygen === 0) {
+                    molecule.oxygen = 1;
+                    return true;
+                }
+            } else if (moleculeType === 'CO2') {
+                if (atomType === 'carbon' && molecule.carbon === 0) {
+                    molecule.carbon = 1;
+                    return true;
+                } else if (atomType === 'oxygen' && molecule.oxygen < 2) {
+                    molecule.oxygen++;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function updateMoleculeDisplay(moleculeType) {
+            const molecule = molecules[moleculeType];
+            const moleculeDiv = document.getElementById(`${moleculeType.toLowerCase()}Molecule`);
+            const placeholderDiv = document.getElementById(`${moleculeType.toLowerCase()}Placeholder`);
+            
+            moleculeDiv.innerHTML = '';
+            
+            if (moleculeType === 'CO' && molecule.carbon > 0 && molecule.oxygen > 0) {
+                molecule.complete = true;
+                moleculeDiv.innerHTML = `
+                    <div class="atom carbon-atom">C</div>
+                    <div class="bond"></div>
+                    <div class="atom oxygen-atom">O</div>
+                `;
+                moleculeDiv.classList.remove('hidden');
+                placeholderDiv.classList.add('hidden');
+            } else if (moleculeType === 'CO2' && molecule.carbon > 0 && molecule.oxygen === 2) {
+                molecule.complete = true;
+                moleculeDiv.innerHTML = `
+                    <div class="atom oxygen-atom">O</div>
+                    <div class="bond double-bond"></div>
+                    <div class="atom carbon-atom">C</div>
+                    <div class="bond double-bond"></div>
+                    <div class="atom oxygen-atom">O</div>
+                `;
+                moleculeDiv.classList.remove('hidden');
+                placeholderDiv.classList.add('hidden');
+            } else if (molecule.carbon > 0 || molecule.oxygen > 0) {
+                let html = '';
+                if (molecule.carbon > 0) html += '<div class="atom carbon-atom">C</div>';
+                for (let i = 0; i < molecule.oxygen; i++) {
+                    if (html) html += '<div class="bond"></div>';
+                    html += '<div class="atom oxygen-atom">O</div>';
+                }
+                moleculeDiv.innerHTML = html;
+                moleculeDiv.classList.remove('hidden');
+                placeholderDiv.classList.add('hidden');
+            }
+        }
+
+        function updateCalculations() {
+            const coComplete = molecules.CO.complete;
+            const co2Complete = molecules.CO2.complete;
+            
+            // Show mass calculations
+            if (coComplete) {
+                document.getElementById('coMassCalc').classList.remove('hidden');
+            }
+            if (co2Complete) {
+                document.getElementById('co2MassCalc').classList.remove('hidden');
+            }
+            
+            // Show ratio analysis
+            if (coComplete && co2Complete) {
+                document.getElementById('ratioResults').innerHTML = `
+                    <p><strong>Massa O dalam CO:</strong> 16u</p>
+                    <p><strong>Massa O dalam CO₂:</strong> 32u</p>
+                    <p class="text-yellow-400"><strong>Perbandingan:</strong> 16:32 = 1:2</p>
+                `;
+                document.getElementById('daltonVerification').classList.remove('hidden');
+                
+                // Add 3D visualization
+                document.getElementById('visualization3D').innerHTML = `
+                    <div class="molecule-3d">
+                        <div class="text-2xl">CO & CO₂</div>
+                        <div class="text-sm text-green-400">Molekul terbentuk!</div>
+                    </div>
+                `;
+            }
+        }
+
+        function resetSimulation() {
+            molecules = {
+                CO: { carbon: 0, oxygen: 0, complete: false },
+                CO2: { carbon: 0, oxygen: 0, complete: false }
+            };
+            
+            // Reset displays
+            document.getElementById('coMolecule').classList.add('hidden');
+            document.getElementById('co2Molecule').classList.add('hidden');
+            document.getElementById('coPlaceholder').classList.remove('hidden');
+            document.getElementById('co2Placeholder').classList.remove('hidden');
+            
+            // Reset calculations
+            document.getElementById('coMassCalc').classList.add('hidden');
+            document.getElementById('co2MassCalc').classList.add('hidden');
+            document.getElementById('daltonVerification').classList.add('hidden');
+            document.getElementById('ratioResults').innerHTML = '<p class="text-gray-400">Bentuk kedua molekul untuk melihat perbandingan</p>';
+            document.getElementById('visualization3D').innerHTML = '<p>Bentuk molekul untuk melihat visualisasi 3D</p>';
+            
+            // Show all atoms again
+            document.querySelectorAll('.atom').forEach(atom => {
+                atom.style.display = 'flex';
+            });
+        }
+
+        // Page navigation
+        function showPage(pageNum) {
+            document.querySelectorAll('[id^="page"]').forEach(page => {
+                page.classList.add('hidden');
+            });
+            document.getElementById(`page${pageNum}`).classList.remove('hidden');
+            currentPage = pageNum;
+            
+            if (pageNum === 3) {
+                setTimeout(initializeSimulation, 100);
+            }
+        }
+
+        // Player setup
+        document.getElementById('playerName').addEventListener('input', checkFormComplete);
+        document.getElementById('playerClass').addEventListener('change', checkFormComplete);
+
+        function checkFormComplete() {
+            const name = document.getElementById('playerName').value.trim();
+            const playerClassValue = document.getElementById('playerClass').value;
+            const startBtn = document.getElementById('startBtn');
+            
+            if (name && playerClassValue) {
+                startBtn.disabled = false;
+                startBtn.className = 'px-8 py-4 rounded-full font-bold bg-green-500 hover:bg-green-600 text-white hover-scale';
+                startBtn.textContent = '▶️ Mulai Balapan Kimia!';
+            } else {
+                startBtn.disabled = true;
+                startBtn.className = 'px-8 py-4 rounded-full font-bold bg-gray-600 text-gray-300';
+            }
+        }
+
+        function startGame() {
+            playerName = document.getElementById('playerName').value.trim();
+            playerClass = document.getElementById('playerClass').value;
+            
+            if (!playerName || !playerClass) {
+                alert('Mohon lengkapi nama dan kelas terlebih dahulu!');
+                return;
+            }
+            
+            // Initialize game state
+            currentQuestion = 0;
+            playerPosition = 0;
+            botPosition = 0;
+            timeLeft = 150;
+            startTime = Date.now();
+            playerAnswers = [];
+            
+            // Update displays
+            document.getElementById('playerDisplay').textContent = playerName;
+            document.getElementById('playerRaceName').textContent = playerName;
+            
+            showPage(5);
+            startTimer();
+            loadQuestion();
+        }
+
+        function startTimer() {
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                document.getElementById('timer').textContent = 
+                    `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Bot progress (slower than player when correct)
+                if (Math.random() < 0.1) {
+                    botPosition = Math.min(100, botPosition + (100/15) * 0.3);
+                    updateProgress();
+                }
+                
+                if (timeLeft <= 0) {
+                    endGame(false);
+                }
+            }, 1000);
+        }
+
+        function loadQuestion() {
+            if (currentQuestion >= questions.length) {
+                endGame(true);
+                return;
+            }
+            
+            const question = questions[currentQuestion];
+            document.getElementById('questionNum').textContent = currentQuestion + 1;
+            document.getElementById('questionText').textContent = question.q;
+            
+            const container = document.getElementById('answersContainer');
+            container.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-btn bg-white bg-opacity-20 hover:bg-opacity-30 p-4 rounded-xl text-left';
+                button.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+                button.onclick = () => selectAnswer(index);
+                container.appendChild(button);
+            });
+        }
+
+        function selectAnswer(selectedIndex) {
+            const question = questions[currentQuestion];
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            // Record answer
+            playerAnswers.push({
+                question: question.q,
+                selected: question.options[selectedIndex],
+                correct: question.options[question.answer],
+                isCorrect: selectedIndex === question.answer
+            });
+            
+            // Show feedback
+            buttons.forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === question.answer) {
+                    btn.classList.add('correct');
+                } else if (index === selectedIndex && selectedIndex !== question.answer) {
+                    btn.classList.add('incorrect');
+                }
+            });
+            
+            setTimeout(() => {
+                if (selectedIndex === question.answer) {
+                    // Correct answer
+                    playerPosition = Math.min(100, playerPosition + (100/15));
+                    currentQuestion++;
+                    updateProgress();
+                    
+                    if (playerPosition >= 100) {
+                        endGame(true);
+                    } else {
+                        loadQuestion();
+                    }
+                } else {
+                    // Wrong answer - reload same question
+                    loadQuestion();
+                }
+            }, 2000);
+        }
+
+        function updateProgress() {
+            document.getElementById('playerProgress').textContent = Math.round(playerPosition) + '%';
+            document.getElementById('botProgress').textContent = Math.round(botPosition) + '%';
+            document.getElementById('playerBar').style.width = playerPosition + '%';
+            document.getElementById('botBar').style.width = botPosition + '%';
+        }
+
+        function endGame(playerWon) {
+            clearInterval(gameTimer);
+            
+            const endTime = Date.now();
+            const timeUsedSeconds = Math.floor((endTime - startTime) / 1000);
+            const timeUsedText = `${Math.floor(timeUsedSeconds / 60)}:${(timeUsedSeconds % 60).toString().padStart(2, '0')}`;
+            
+            score = Math.max(0, 100 - timeUsedSeconds);
+            
+            // Update result page
+            if (playerWon) {
+                document.getElementById('resultIcon').textContent = '🏆';
+                document.getElementById('resultTitle').textContent = 'Selamat! Anda Menang!';
+            } else if (botPosition >= 100) {
+                document.getElementById('resultIcon').textContent = '🤖';
+                document.getElementById('resultTitle').textContent = 'Komputer Menang!';
+            } else {
+                document.getElementById('resultIcon').textContent = '⏰';
+                document.getElementById('resultTitle').textContent = 'Waktu Habis!';
+            }
+            
+            document.getElementById('finalName').textContent = playerName;
+            document.getElementById('finalClass').textContent = playerClass;
+            document.getElementById('finalPlayerProgress').textContent = Math.round(playerPosition) + '%';
+            document.getElementById('finalBotProgress').textContent = Math.round(botPosition) + '%';
+            document.getElementById('timeUsed').textContent = timeUsedText;
+            document.getElementById('finalScore').textContent = score;
+            
+            // Generate answer key
+            const answerKeyHtml = playerAnswers.map((answer, index) => `
+                <div class="mb-2 ${answer.isCorrect ? 'text-green-300' : 'text-red-300'}">
+                    <strong>Soal ${index + 1}:</strong> ${answer.question.substring(0, 50)}...<br>
+                    <span class="text-xs">
+                        Jawaban Anda: ${answer.selected} ${answer.isCorrect ? '✓' : '✗'}<br>
+                        ${!answer.isCorrect ? `Jawaban Benar: ${answer.correct}` : ''}
+                    </span>
+                </div>
+            `).join('');
+            
+            document.getElementById('answerKey').innerHTML = answerKeyHtml;
+            
+            showPage(6);
+        }
+
+        function submitFeedback() {
+            const experience = document.getElementById('experienceFeedback').value;
+            const suggestion = document.getElementById('suggestionFeedback').value;
+            
+            alert('Terima kasih atas feedback Anda!\n\nFeedback ini sangat berharga untuk pengembangan lebih lanjut.');
+            
+            // In real implementation, you would send this to a server
+            console.log('Feedback received:', { experience, suggestion, playerName, playerClass, score });
+        }
+
+        function resetGame() {
+            // Reset all game state
+            currentPage = 1;
+            playerName = '';
+            playerClass = '';
+            currentQuestion = 0;
+            playerPosition = 0;
+            botPosition = 0;
+            timeLeft = 150;
+            score = 0;
+            playerAnswers = [];
+            
+            // Clear form
+            document.getElementById('playerName').value = '';
+            document.getElementById('playerClass').value = '';
+            document.getElementById('experienceFeedback').value = '';
+            document.getElementById('suggestionFeedback').value = '';
+            
+            // Reset simulation
+            resetSimulation();
+            
+            // Show first page
+            showPage(1);
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Game initialized successfully!');
+        });
+    </script>
+</body>
+</html>
